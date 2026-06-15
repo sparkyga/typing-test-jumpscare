@@ -111,12 +111,27 @@
     caret.className = "caret";
     viewport.appendChild(caret);
 
+    // where the scare fires. short texts (<15 words) go all the way to the end;
+    // longer ones get cut 2-6 words early, weighted so longer texts cut deeper.
+    const total = wordObjs.length;
+    let finishWi = total - 1;
+    if (total >= 15) {
+      const MIN = 2, MAX = 6;
+      const lengthFactor = Math.min(1, (total - 15) / 30); // 0 at 15 words, 1 at 45+
+      const center = MIN + lengthFactor * (MAX - MIN);
+      let cut = Math.round(center + (Math.random() - 0.5) * 2.2);
+      cut = Math.max(MIN, Math.min(MAX, cut));
+      finishWi = total - 1 - cut;
+    }
+
     return {
       words: wordObjs,
       wi: 0, ci: 0,
+      finishWi,
       caret,
       startTime: 0,
       correct: 0,
+      dispWpm: 0,
       timerIv: null,
     };
   }
@@ -153,8 +168,8 @@
     el.textContent = val;
     if (el.animate) {
       el.animate(
-        [{ opacity: 0.5, transform: "translateY(4px)" }, { opacity: 1, transform: "translateY(0)" }],
-        { duration: 280, easing: "cubic-bezier(.22,.61,.36,1)" }
+        [{ opacity: 0.7, transform: "translateY(2px)" }, { opacity: 1, transform: "translateY(0)" }],
+        { duration: 180, easing: "ease-out" }
       );
     }
   }
@@ -163,8 +178,12 @@
     if (!test) return;
     const elapsed = test.startTime ? (Date.now() - test.startTime) / 1000 : 0;
     setStat(liveTimer, Math.floor(elapsed));
-    const wpm = elapsed > 0 ? Math.round((test.correct / 5) / (elapsed / 60)) : 0;
-    setStat(liveWpm, wpm);
+    // ease the displayed wpm toward the real value so it glides instead of
+    // jittering on every keystroke
+    let target = elapsed > 0.4 ? (test.correct / 5) / (elapsed / 60) : 0;
+    target = Math.min(target, 240);
+    test.dispWpm += (target - test.dispWpm) * 0.16;
+    setStat(liveWpm, Math.round(test.dispWpm));
     const pct = Math.round((test.wi / test.words.length) * 100);
     setStat(liveProgress, pct + "%");
   }
@@ -212,6 +231,7 @@
         test.ci = 0;
         positionCaret();
         updateStats();
+        checkFinish();
       }
       return;
     }
@@ -234,10 +254,14 @@
 
     positionCaret();
     updateStats();
+    checkFinish();
+  }
 
-    // finished? (last word filled)
-    const last = test.wi === test.words.length - 1;
-    if (last && test.ci >= w.chars.length) {
+  // fire the scare once the cutoff word is reached/filled
+  function checkFinish() {
+    if (!test || finished) return;
+    const w = test.words[test.wi];
+    if (test.wi > test.finishWi || (test.wi === test.finishWi && test.ci >= w.chars.length)) {
       finishTest();
     }
   }

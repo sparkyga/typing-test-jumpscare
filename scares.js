@@ -331,6 +331,52 @@ function show(layer, html, bg = "#000") {
   layer.classList.remove("hidden");
 }
 
+/* ---------- lighting helpers ---------- */
+// a single blinding flash that fades out
+function flash(layer, color = "#fff", dur = 0.16, z = 60) {
+  const f = document.createElement("div");
+  f.style.cssText =
+    `position:absolute;inset:0;background:${color};pointer-events:none;z-index:${z};animation:flashOut ${dur}s ease forwards`;
+  layer.appendChild(f);
+  setTimeout(() => { if (f.parentNode) f.remove(); }, dur * 1000 + 80);
+}
+
+// strobing colored light, screen-blended so it lights the face on top
+function lightStorm(layer, colors, speed = 65, z = 40) {
+  const o = document.createElement("div");
+  o.style.cssText =
+    `position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;z-index:${z}`;
+  layer.appendChild(o);
+  let i = 0;
+  return setInterval(() => { o.style.background = colors[i++ % colors.length]; }, speed);
+}
+
+// random sputtering flashes (lightning / paparazzi feel)
+function flashStorm(layer, colors = ["#fff", "#ff0033"], every = 300) {
+  return setInterval(() => {
+    flash(layer, colors[Math.floor(Math.random() * colors.length)], 0.09, 55);
+  }, every);
+}
+
+// the core jump: blinding flash -> face lunges at you -> strobe + convulse + scream
+function faceSlam(layer, faceHtml, opts = {}) {
+  const dur = opts.dur || 2900;
+  const colors = opts.colors || ["#ffffff", "#ff0033", "transparent", "#2a00ff", "transparent"];
+  show(layer, `<div class="scare-img slam">${faceHtml}</div>`, "#000");
+  const face = layer.querySelector(".slam");
+
+  flash(layer, "#ffffff", 0.22);
+  AudioKit.boom(1.0);
+  AudioKit.scream(opts.screamDur || 1.9, 1.0);
+
+  const ivLight = lightStorm(layer, colors, opts.speed || 60);
+  const ivFlash = flashStorm(layer, opts.flashColors || ["#fff", "#ff0033"], opts.flashEvery || 300);
+  setTimeout(() => { if (face) face.classList.add("rage"); }, 210);
+
+  setTimeout(() => { clearInterval(ivLight); clearInterval(ivFlash); }, dur);
+  return dur;
+}
+
 /* ---------- hidden scare: tung tung tung sahur ---------- */
 /* OPTIONAL: to use a real, properly-cropped audio clip instead of the
    synthesized wooden knocks, paste a URL or base64 data URI below.
@@ -422,14 +468,10 @@ window.SCARES = [
     name: "the classic",
     desc: "screen snaps to a screaming face that lunges at you. loud. simple. effective.",
     run(layer) {
-      const dur = 2600;
-      show(layer, `<div class="scare-img" style="animation:zoomIn .35s ease-out forwards">${faceSVG()}</div>`);
-      AudioKit.boom();
-      AudioKit.scream(2.0, 0.95);
-      // little aftershake
-      const node = layer.firstElementChild;
-      setTimeout(() => { node.style.animation = "shake .35s infinite"; }, 360);
-      return dur;
+      return faceSlam(layer, faceSVG(), {
+        colors: ["#ffffff", "#ff0033", "transparent", "#2a00ff", "transparent"],
+        flashColors: ["#fff", "#ff0033"], flashEvery: 300, dur: 2900
+      });
     }
   },
   {
@@ -438,11 +480,13 @@ window.SCARES = [
     name: "rave from hell",
     desc: "blinding black-and-white strobe with a screaming siren. disorienting and brutal.",
     run(layer) {
-      const dur = 3000;
-      show(layer, `<div class="scare-img" style="animation:strobe .07s steps(1) infinite"></div>
-        <div class="scare-img" style="opacity:.85;animation:flicker .9s infinite">${faceSkull()}</div>`);
-      AudioKit.siren(2.8, 0.6);
-      AudioKit.glitchNoise(2.8, 0.4);
+      const dur = faceSlam(layer, faceSkull(), {
+        colors: ["#ffffff", "#000000", "#00f6ff", "#ff00e1", "#ffffff", "#000000"],
+        speed: 42, flashColors: ["#fff", "#00f6ff", "#ff00e1"], flashEvery: 150,
+        dur: 3300, screamDur: 1.5
+      });
+      AudioKit.siren(3.1, 0.55);
+      AudioKit.glitchNoise(3.1, 0.35);
       return dur;
     }
   },
@@ -452,7 +496,7 @@ window.SCARES = [
     name: "signal lost",
     desc: "the screen tears apart into static and digital garbage, then a face flickers through.",
     run(layer) {
-      const dur = 3000;
+      const dur = 3200;
       const bars = Array.from({ length: 60 }, () => {
         const h = (Math.random() * 5 + 1).toFixed(1);
         const c = Math.random() > 0.5 ? "#fff" : "#111";
@@ -460,13 +504,20 @@ window.SCARES = [
         return `<div style="height:${h}%;background:${c};opacity:${o}"></div>`;
       }).join("");
       show(layer, `
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;animation:flicker .12s infinite">${bars}</div>
-        <div class="scare-img" style="animation:flicker .18s infinite">${faceGlitch()}</div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;animation:flicker .1s infinite">${bars}</div>
         <div style="position:absolute;inset:0;font-family:'Roboto Mono',monospace;color:#0f0;font-size:13px;line-height:1.2;opacity:.5;overflow:hidden;padding:8px">
           ${"SIGNAL LOST ▒▓█ NO INPUT ░▒▓ ERR 0x00DEAD ".repeat(60)}
-        </div>`);
-      AudioKit.glitchNoise(2.6, 0.85);
-      setTimeout(() => { AudioKit.scream(1.0, 0.9); }, 1700);
+        </div>
+        <div class="scare-img slam" style="z-index:10">${faceGlitch()}</div>`, "#000");
+      flash(layer, "#fff", 0.2);
+      AudioKit.boom(1.0);
+      AudioKit.glitchNoise(3.0, 0.95);
+      const face = layer.querySelector(".slam");
+      setTimeout(() => { if (face) face.classList.add("rage"); }, 210);
+      const ivLight = lightStorm(layer, ["#ff0040", "transparent", "#00f6ff", "transparent"], 50);
+      const ivFlash = flashStorm(layer, ["#fff", "#ff0040", "#00f6ff"], 190);
+      setTimeout(() => AudioKit.scream(1.1, 0.95), 1400);
+      setTimeout(() => { clearInterval(ivLight); clearInterval(ivFlash); }, dur);
       return dur;
     }
   },
@@ -498,11 +549,10 @@ window.SCARES = [
       // stage 2: the strike
       setTimeout(() => {
         o.stop();
-        show(layer, `<div class="scare-img" style="animation:zoomIn .25s ease-out forwards">${faceWatcher()}</div>`);
-        AudioKit.boom();
-        AudioKit.scream(1.8, 0.97);
-        const node = layer.firstElementChild;
-        setTimeout(() => { node.style.animation = "shake .3s infinite"; }, 250);
+        faceSlam(layer, faceWatcher(), {
+          colors: ["#ffffff", "transparent", "#7b00ff", "transparent"],
+          flashColors: ["#fff", "#b9b3ff"], flashEvery: 230, dur: 1800
+        });
       }, 3400);
       return dur;
     }
@@ -513,18 +563,13 @@ window.SCARES = [
     name: "red alert",
     desc: "the whole screen floods blood red and convulses while an alarm blares. visceral.",
     run(layer) {
-      const dur = 3200;
-      show(layer, `<div class="scare-img" style="animation:shake .25s infinite;filter:saturate(1.3)">${faceDemon()}</div>`, "#7e0000");
-      // pulse the red
-      let on = true;
-      const iv = setInterval(() => {
-        layer.style.background = on ? "#b00000" : "#3a0000";
-        on = !on;
-      }, 120);
-      AudioKit.siren(3.0, 0.5);
-      AudioKit.boom();
-      setTimeout(() => AudioKit.scream(1.2, 0.85), 1600);
-      setTimeout(() => clearInterval(iv), dur);
+      const dur = 3400;
+      faceSlam(layer, faceDemon(), {
+        colors: ["#ff0000", "#ffffff", "transparent", "#ff5500", "transparent"],
+        flashColors: ["#ff0000", "#fff"], flashEvery: 170, dur, screamDur: 1.4
+      });
+      AudioKit.siren(3.2, 0.5);
+      setTimeout(() => AudioKit.scream(1.2, 0.92), 1700);
       return dur;
     }
   },
@@ -534,7 +579,7 @@ window.SCARES = [
     name: "fake crash",
     desc: "looks like a real system crash... they lean in to read it, and that's when it hits.",
     run(layer) {
-      const dur = 5200;
+      const dur = 5600;
       // stage 1: convincing fake blue screen
       show(layer, `
         <div style="position:absolute;inset:0;background:#0078d7;color:#fff;font-family:'Lexend Deca',sans-serif;padding:8vh 10vw;display:flex;flex-direction:column;gap:22px">
@@ -559,11 +604,10 @@ window.SCARES = [
       // stage 2: gotcha
       setTimeout(() => {
         clearInterval(iv);
-        show(layer, `<div class="scare-img" style="animation:zoomIn .22s ease-out forwards">${faceDead()}</div>`);
-        AudioKit.boom();
-        AudioKit.scream(1.9, 0.97);
-        const node = layer.firstElementChild;
-        setTimeout(() => { node.style.animation = "shake .3s infinite"; }, 240);
+        faceSlam(layer, faceDead(), {
+          colors: ["#ffffff", "transparent", "#00ffd0", "transparent"],
+          flashColors: ["#fff", "#00ffd0"], flashEvery: 270, dur: 1900
+        });
       }, 3600);
       return dur;
     }
@@ -587,13 +631,17 @@ window.SCARES = [
       const lunge = () => {
         const g = layer.querySelector("#tungGuy");
         if (g) {
-          g.style.transition = "transform .16s";
-          g.style.transform = "scale(1.3)";
-          g.style.animation = "shake .28s infinite";
+          g.style.transition = "transform .14s";
+          g.style.transform = "scale(1.25)";
+          g.style.animation = "violentShake .24s infinite";
         }
-        AudioKit.boom();
+        flash(layer, "#fff", 0.2);
+        AudioKit.boom(1.0);
         woodHit(AudioKit.ctx.currentTime, 150, 1.0);
-        AudioKit.scream(1.4, 0.92);
+        AudioKit.scream(1.4, 0.95);
+        const ivL = lightStorm(layer, ["#ffffff", "transparent", "#ffae00", "transparent"], 60);
+        const ivF = flashStorm(layer, ["#fff", "#ffae00"], 240);
+        setTimeout(() => { clearInterval(ivL); clearInterval(ivF); }, 1900);
       };
 
       // real clip provided? play it, lunge on the configured beat
