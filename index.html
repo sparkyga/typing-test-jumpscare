@@ -22,6 +22,12 @@
       </svg>
       <span class="logo-text">type<span class="logo-accent">test</span></span>
     </div>
+    <div class="theme-picker" role="group" aria-label="theme">
+      <button class="theme-dot" data-theme="serika" style="--c:#e2b714" title="serika" type="button"></button>
+      <button class="theme-dot" data-theme="dracula" style="--c:#bd93f9" title="dracula" type="button"></button>
+      <button class="theme-dot" data-theme="matrix" style="--c:#15ff00" title="matrix" type="button"></button>
+      <button class="theme-dot" data-theme="coral" style="--c:#ff5d73" title="coral" type="button"></button>
+    </div>
   </header>
 
   <!-- ===================== MAIN / SETTINGS ===================== -->
@@ -51,24 +57,73 @@
         <div id="scarePicker" class="scare-grid"></div>
       </div>
 
+      <!-- OFFSET -->
+      <div class="config-block">
+        <div class="config-head">
+          <span class="config-label">3 — trigger offset
+            <span class="info" tabindex="0" role="button" aria-label="what is trigger offset">i
+              <span class="info-tip">which player in line gets the scare. everyone before them takes the test and gets a normal results screen, then hits “next” to pass it on — the scare only fires on <strong>player #N</strong>. set it to whoever you actually want to get. <strong>1 = the first person.</strong></span>
+            </span>
+          </span>
+        </div>
+        <div class="stepper">
+          <button id="offsetMinus" class="step-btn" type="button" aria-label="decrease offset">−</button>
+          <div class="step-val">
+            <span id="offsetVal">0</span>
+            <span id="offsetSub" class="step-sub">every run</span>
+          </div>
+          <button id="offsetPlus" class="step-btn" type="button" aria-label="increase offset">+</button>
+        </div>
+      </div>
+
       <!-- START -->
       <div class="config-block start-block">
         <button id="startBtn" class="start-btn" type="button">start test ▸</button>
+        <button id="shareBtn" class="ghost-btn" type="button">⤴ copy game link</button>
         <p class="start-hint">tip: turn the volume up. for them.</p>
       </div>
     </section>
-
-    <footer class="foot">
-      <span>made for harmless chaos · close this tab to escape</span>
-      <span class="credit">
-        built by
-        <a href="https://www.linkedin.com/in/grayson-anderson-95781226a/" target="_blank" rel="noopener noreferrer">Grayson Anderson</a>
-      </span>
-    </footer>
   </main>
 
   <!-- ===================== TEST SCREEN ===================== -->
   <section id="test" class="screen hidden">
+    <!-- monkeytype-style mode bar. only visible during the test.
+         clicking anything but "words" is the secret exit back to config. -->
+    <div class="mode-bar">
+      <div class="mode-group">
+        <button type="button" class="mode-opt" data-mode="punctuation">
+          <svg class="mi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.6"/><path d="M10.6 8v1.6a1.4 1.4 0 0 0 2.8 0V8A5.4 5.4 0 1 0 9.7 13"/></svg>
+          punctuation
+        </button>
+        <button type="button" class="mode-opt" data-mode="numbers">
+          <svg class="mi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6 2.5 4.6 13.5M11.4 2.5 10 13.5M2.6 5.7h11M2.4 10.3h11"/></svg>
+          numbers
+        </button>
+      </div>
+      <div class="mode-group">
+        <button type="button" class="mode-opt" data-mode="time">
+          <svg class="mi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.4 1.6"/></svg>
+          time
+        </button>
+        <button type="button" class="mode-opt active" data-mode="words">
+          <svg class="mi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.5 8 2.5l5 11M5.2 9.6h5.6"/></svg>
+          words
+        </button>
+        <button type="button" class="mode-opt" data-mode="quote">
+          <svg class="mi" viewBox="0 0 16 16" fill="currentColor"><path d="M3 5.5h3.2v3.2c0 1.7-.9 2.8-2.6 3.3l-.5-1.1c.9-.3 1.3-.7 1.4-1.3H3V5.5zm5.6 0h3.2v3.2c0 1.7-.9 2.8-2.6 3.3l-.5-1.1c.9-.3 1.3-.7 1.4-1.3H8.6V5.5z"/></svg>
+          quote
+        </button>
+        <button type="button" class="mode-opt" data-mode="zen">
+          <svg class="mi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.5 13 5.5 6.5l2.3 3.4L10 5l4.5 8z"/></svg>
+          zen
+        </button>
+        <button type="button" class="mode-opt" data-mode="custom">
+          <svg class="mi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.8 2.5a3 3 0 0 0-3.9 3.7L2.5 10.6a1.3 1.3 0 0 0 1.9 1.9l4.4-4.4a3 3 0 0 0 3.7-3.9L10.4 6 9 4.6z"/></svg>
+          custom
+        </button>
+      </div>
+    </div>
+
     <div class="test-stats">
       <div class="stat"><span id="liveTimer" class="stat-num">0</span><span class="stat-label">time</span></div>
       <div class="stat"><span id="liveWpm" class="stat-num">0</span><span class="stat-label">wpm</span></div>
@@ -85,8 +140,47 @@
     </div>
   </section>
 
+  <!-- ===================== RESULTS SCREEN (skipped players) ===================== -->
+  <section id="results" class="screen hidden">
+    <div class="results-wrap">
+      <div class="res-top">
+        <div class="res-big">
+          <span class="res-label">wpm</span>
+          <span id="resWpm" class="res-num">0</span>
+        </div>
+        <div class="res-big">
+          <span class="res-label">acc</span>
+          <span id="resAcc" class="res-num">0%</span>
+        </div>
+        <div id="resGraph" class="res-graph"></div>
+      </div>
+      <div class="res-stats">
+        <div class="res-stat"><span class="res-k">raw</span><span id="resRaw" class="res-v">0</span></div>
+        <div class="res-stat"><span class="res-k">characters</span><span id="resChars" class="res-v">0/0</span></div>
+        <div class="res-stat"><span class="res-k">consistency</span><span id="resCons" class="res-v">0%</span></div>
+        <div class="res-stat"><span class="res-k">time</span><span id="resTime" class="res-v">0s</span></div>
+      </div>
+      <div class="res-foot">
+        <span id="resPb" class="res-pb hidden">★ new personal best</span>
+        <button id="resNext" class="start-btn" type="button">next ▸</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- shown on every page except the jumpscare (the scare overlay covers it) -->
+  <footer class="foot">
+    <span class="credit">
+      built by
+      <a href="https://www.linkedin.com/in/grayson-anderson-95781226a/" target="_blank" rel="noopener noreferrer">Grayson Anderson</a>
+    </span>
+    <button id="coffeeBtn" class="coffee-btn" type="button" aria-label="buy me a coffee">☕ buy me a coffee</button>
+  </footer>
+
   <!-- ===================== SCARE OVERLAY ===================== -->
   <div id="scareLayer" class="scare-layer hidden" aria-hidden="true"></div>
+
+  <!-- toast (e.g. "game link copied") -->
+  <div id="toast" class="toast hidden"></div>
 
   <!-- ===================== INTRO POPUP ===================== -->
   <div id="introModal" class="modal-overlay">

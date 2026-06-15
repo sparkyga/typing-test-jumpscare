@@ -324,6 +324,41 @@ function faceDead() {
   </svg>`;
 }
 
+/* ---------- deranged coffee mug (the "buy me a coffee" trap) ---------- */
+function mugSVG() {
+  return `
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="cup" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f3ede0"/>
+        <stop offset="100%" stop-color="#cdc1aa"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="400" fill="#0a0805"/>
+    <g stroke="#e8e0d0" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85">
+      <path d="M150 96 q-16 -22 4 -40 q18 -16 2 -38"/>
+      <path d="M200 90 q-18 -24 4 -44 q20 -18 2 -40"/>
+      <path d="M250 96 q-16 -22 4 -40 q18 -16 2 -38"/>
+    </g>
+    <ellipse cx="200" cy="346" rx="128" ry="22" fill="#241a12"/>
+    <path d="M296 196 q70 6 70 70 q0 64 -70 64" fill="none" stroke="url(#cup)" stroke-width="26"/>
+    <path d="M104 150 L296 150 L278 322 Q200 346 122 322 Z" fill="url(#cup)" stroke="#b7ab90" stroke-width="3"/>
+    <ellipse cx="200" cy="150" rx="96" ry="22" fill="#36210f"/>
+    <ellipse cx="200" cy="147" rx="94" ry="19" fill="#56371d"/>
+    <path d="M138 196 L182 210" stroke="#3a2a16" stroke-width="10" stroke-linecap="round"/>
+    <path d="M262 196 L218 210" stroke="#3a2a16" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="162" cy="224" r="24" fill="#fff"/>
+    <circle cx="238" cy="224" r="24" fill="#fff"/>
+    <circle cx="167" cy="230" r="10" fill="#b01818"/>
+    <circle cx="233" cy="230" r="10" fill="#b01818"/>
+    <circle cx="167" cy="230" r="3.5" fill="#fff"/>
+    <circle cx="233" cy="230" r="3.5" fill="#fff"/>
+    <path d="M150 270 Q200 260 250 270 Q236 322 200 326 Q164 322 150 270 Z" fill="#190f08"/>
+    <path d="M162 274 l10 14 l12 -12 l12 14 l12 -12 l12 14 l10 -14" fill="none" stroke="#e8ddc8" stroke-width="5"/>
+    <path d="M196 326 q4 24 -2 44" stroke="#3a2412" stroke-width="9" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
 /* small helper to set layer html + show it */
 function show(layer, html, bg = "#000") {
   layer.style.background = bg;
@@ -382,7 +417,6 @@ function faceSlam(layer, faceHtml, opts = {}) {
    synthesized wooden knocks, paste a URL or base64 data URI below.
    When set, it plays the clip and skips the synth. */
 const TUNG_AUDIO_SRC = "";       // e.g. "tung.mp3" or "data:audio/mpeg;base64,...."
-const TUNG_AUDIO_HIT_MS = 1500;  // when the lunge fires if using a real clip
 
 // a single wooden "tung" — pitched knock with a sharp transient
 function woodHit(time, freq = 200, vol = 0.7) {
@@ -525,36 +559,12 @@ window.SCARES = [
     id: "watcher",
     emoji: "👁",
     name: "the watcher",
-    desc: "the lights die, two eyes open in the dark and drift closer... then it strikes.",
+    desc: "no warning — the pale thing is already in your face, eyes wide, screaming.",
     run(layer) {
-      const dur = 5200;
-      // stage 1: darkness + distant eyes, low hum
-      show(layer, `
-        <div id="watchEyes" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:60px;transform:scale(.25);transition:transform 3.4s ease-in;filter:drop-shadow(0 0 12px #500)">
-          <div style="width:90px;height:50px;border-radius:50%;background:radial-gradient(circle,#ff2020 0%,#600 60%,#000 100%)"></div>
-          <div style="width:90px;height:50px;border-radius:50%;background:radial-gradient(circle,#ff2020 0%,#600 60%,#000 100%)"></div>
-        </div>`, "#000");
-      // creeping hum
-      const ctx = AudioKit.ensure();
-      const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = 52;
-      const g = ctx.createGain(); g.gain.value = 0.0001;
-      g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 3.2);
-      o.connect(g).connect(ctx.destination); o.start();
-      // whisper-ish beeps building
-      [600, 1200, 2000, 2700].forEach((ms, i) => setTimeout(() => AudioKit.beep(300 + i * 60, 0.08, 0.12), ms));
-      requestAnimationFrame(() => {
-        const eyes = layer.querySelector("#watchEyes");
-        if (eyes) eyes.style.transform = "scale(1.1)";
+      return faceSlam(layer, faceWatcher(), {
+        colors: ["#ffffff", "transparent", "#7b00ff", "transparent"],
+        flashColors: ["#fff", "#b9b3ff"], flashEvery: 230, dur: 2900, screamDur: 1.9
       });
-      // stage 2: the strike
-      setTimeout(() => {
-        o.stop();
-        faceSlam(layer, faceWatcher(), {
-          colors: ["#ffffff", "transparent", "#7b00ff", "transparent"],
-          flashColors: ["#fff", "#b9b3ff"], flashEvery: 230, dur: 1800
-        });
-      }, 3400);
-      return dur;
     }
   },
   {
@@ -577,38 +587,23 @@ window.SCARES = [
     id: "bsod",
     emoji: "💻",
     name: "fake crash",
-    desc: "looks like a real system crash... they lean in to read it, and that's when it hits.",
+    desc: "the screen 'crashes' to a blue error and the corpse erupts out of it instantly.",
     run(layer) {
-      const dur = 5600;
-      // stage 1: convincing fake blue screen
-      show(layer, `
+      const dur = 2900;
+      const bsod = `
         <div style="position:absolute;inset:0;background:#0078d7;color:#fff;font-family:'Lexend Deca',sans-serif;padding:8vh 10vw;display:flex;flex-direction:column;gap:22px">
           <div style="font-size:9vw;line-height:1">:(</div>
-          <div style="font-size:1.5rem;max-width:680px;line-height:1.5">Your PC ran into a problem and needs to restart. We're just collecting some error info, and then we'll restart for you.</div>
-          <div id="bsodPct" style="font-size:1.5rem">0% complete</div>
-          <div style="display:flex;gap:18px;align-items:center;margin-top:18px">
-            <div style="width:84px;height:84px;background:#fff;padding:5px">
-              <div style="width:100%;height:100%;background:repeating-conic-gradient(#0078d7 0 25%,#fff 0 50%) 0/16px 16px"></div>
-            </div>
-            <div style="font-size:.95rem;max-width:420px;opacity:.92">For more information about this issue and possible fixes, do not visit anyone for help because no one is coming. Stop code: <b>HUMAN_PRESENCE_DETECTED</b></div>
-          </div>
-        </div>`, "#0078d7");
-      // tick the percentage up to bait them into reading
-      let pct = 0;
-      const pctEl = layer.querySelector("#bsodPct");
-      const iv = setInterval(() => {
-        pct += Math.floor(Math.random() * 9) + 2;
-        if (pct > 99) pct = 99;
-        if (pctEl) pctEl.textContent = pct + "% complete";
-      }, 360);
-      // stage 2: gotcha
-      setTimeout(() => {
-        clearInterval(iv);
-        faceSlam(layer, faceDead(), {
-          colors: ["#ffffff", "transparent", "#00ffd0", "transparent"],
-          flashColors: ["#fff", "#00ffd0"], flashEvery: 270, dur: 1900
-        });
-      }, 3600);
+          <div style="font-size:1.5rem;max-width:680px;line-height:1.5">Your PC ran into a problem. Stop code: <b>HUMAN_PRESENCE_DETECTED</b></div>
+        </div>`;
+      show(layer, `${bsod}<div class="scare-img slam" style="z-index:10">${faceDead()}</div>`, "#0078d7");
+      flash(layer, "#fff", 0.22);
+      AudioKit.boom(1.0);
+      AudioKit.scream(1.9, 1.0);
+      const face = layer.querySelector(".slam");
+      setTimeout(() => { if (face) face.classList.add("rage"); }, 210);
+      const ivL = lightStorm(layer, ["#ffffff", "transparent", "#00ffd0", "transparent"], 60);
+      const ivF = flashStorm(layer, ["#fff", "#00ffd0"], 270);
+      setTimeout(() => { clearInterval(ivL); clearInterval(ivF); }, dur);
       return dur;
     }
   },
@@ -622,50 +617,50 @@ window.SCARES = [
     desc: "secret.",
     run(layer) {
       const ctx = AudioKit.ensure();
-      show(layer, `<div class="scare-img" id="tungGuy" style="transform:scale(.4);transition:transform 1.9s cubic-bezier(.4,0,.85,1);filter:drop-shadow(0 0 22px #000)">${tungSVG()}</div>`, "#0a0805");
-      requestAnimationFrame(() => {
-        const g = layer.querySelector("#tungGuy");
-        if (g) g.style.transform = "scale(.95)";
-      });
-
-      const lunge = () => {
-        const g = layer.querySelector("#tungGuy");
-        if (g) {
-          g.style.transition = "transform .14s";
-          g.style.transform = "scale(1.25)";
-          g.style.animation = "violentShake .24s infinite";
-        }
-        flash(layer, "#fff", 0.2);
-        AudioKit.boom(1.0);
-        woodHit(AudioKit.ctx.currentTime, 150, 1.0);
-        AudioKit.scream(1.4, 0.95);
-        const ivL = lightStorm(layer, ["#ffffff", "transparent", "#ffae00", "transparent"], 60);
-        const ivF = flashStorm(layer, ["#fff", "#ffae00"], 240);
-        setTimeout(() => { clearInterval(ivL); clearInterval(ivF); }, 1900);
-      };
-
-      // real clip provided? play it, lunge on the configured beat
+      // the signature wooden knocks fire as a fast loud burst RIGHT NOW,
+      // layered into the scare — no slow accelerating buildup.
       if (TUNG_AUDIO_SRC) {
         try {
           const a = new Audio(TUNG_AUDIO_SRC);
           a.volume = 1.0;
           a.play().catch(() => {});
         } catch (e) {}
-        setTimeout(lunge, TUNG_AUDIO_HIT_MS);
-        return TUNG_AUDIO_HIT_MS + 2200;
+      } else {
+        let t = ctx.currentTime;
+        for (let i = 0; i < 10; i++) { woodHit(t, 210 - i * 6, 0.95); t += 0.07; }
       }
+      return faceSlam(layer, tungSVG(), {
+        colors: ["#ffffff", "transparent", "#ffae00", "transparent"],
+        flashColors: ["#fff", "#ffae00"], flashEvery: 230, dur: 2900, screamDur: 1.6
+      });
+    }
+  },
 
-      // otherwise: synthesized accelerating wooden knocks -> climax
-      const t0 = ctx.currentTime;
-      let t = t0 + 0.12, gap = 0.21;
-      for (let i = 0; i < 13; i++) {
-        woodHit(t, 200, Math.min(0.95, 0.55 + i * 0.03));
-        t += gap;
-        gap *= 0.93; // speed up
-      }
-      const climaxMs = (t - t0) * 1000;
-      setTimeout(lunge, climaxMs);
-      return climaxMs + 1900;
+  /* ---- HIDDEN: the "buy me a coffee" button trap. fires instantly. ---- */
+  {
+    id: "coffee",
+    hidden: true,
+    emoji: "☕",
+    name: "buy me a coffee",
+    desc: "secret.",
+    run(layer) {
+      // quirky cartoon "boing" sting that drops into the scream
+      const ctx = AudioKit.ensure();
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(950, t);
+      o.frequency.exponentialRampToValueAtTime(110, t + 0.32);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.42, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.36);
+      o.connect(g).connect(ctx.destination);
+      o.start(t); o.stop(t + 0.37);
+
+      return faceSlam(layer, mugSVG(), {
+        colors: ["#ffffff", "#6f4a24", "transparent", "#c8983f", "transparent"],
+        flashColors: ["#fff", "#c8983f"], flashEvery: 210, dur: 2800, screamDur: 1.7
+      });
     }
   }
 ];
