@@ -67,15 +67,37 @@
   /* ===================== SETUP: offset stepper ===================== */
   const offsetVal = document.getElementById("offsetVal");
   const offsetSub = document.getElementById("offsetSub");
+  const stepperEl = document.querySelector(".stepper");
+  let offsetHidden = false;  // true after "random" — value masked until revealed
+
   function renderOffset() {
-    offsetVal.textContent = offset;
-    offsetSub.textContent = offset === 1 ? "first player" : "player #" + offset;
+    if (offsetHidden) {
+      offsetVal.textContent = "??";
+      offsetSub.textContent = "player #??";
+      stepperEl.classList.add("secret");
+    } else {
+      offsetVal.textContent = offset;
+      offsetSub.textContent = offset === 1 ? "first player" : "player #" + offset;
+      stepperEl.classList.remove("secret");
+    }
   }
-  document.getElementById("offsetMinus").addEventListener("click", () => {
-    offset = Math.max(1, offset - 1); renderOffset();
+  function setOffset(n) {            // any manual change reveals the value
+    offsetHidden = false;
+    offset = Math.max(1, Math.min(50, n));
+    renderOffset();
+  }
+  document.getElementById("offsetMinus").addEventListener("click", () => setOffset(offset - 1));
+  document.getElementById("offsetPlus").addEventListener("click", () => setOffset(offset + 1));
+  // pick a random target (1–5) and keep it secret — even from the prankster
+  document.getElementById("offsetRandom").addEventListener("click", () => {
+    offset = Math.floor(Math.random() * 5) + 1;
+    offsetHidden = true;
+    renderOffset();
   });
-  document.getElementById("offsetPlus").addEventListener("click", () => {
-    offset = Math.min(50, offset + 1); renderOffset();
+  // hover the readout to reveal, click to un-hide it
+  document.getElementById("offsetReveal").addEventListener("click", () => {
+    offsetHidden = false;
+    renderOffset();
   });
   renderOffset();
 

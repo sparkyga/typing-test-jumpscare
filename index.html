@@ -65,12 +65,14 @@
               <span class="info-tip">which player in line gets the scare. everyone before them takes the test and gets a normal results screen, then hits “next” to pass it on — the scare only fires on <strong>player #N</strong>. set it to whoever you actually want to get. <strong>1 = the first person.</strong></span>
             </span>
           </span>
+          <button id="offsetRandom" class="ghost-btn" type="button"><span class="dice">🎲</span> random</button>
         </div>
         <div class="stepper">
           <button id="offsetMinus" class="step-btn" type="button" aria-label="decrease offset">−</button>
           <div class="step-val">
-            <span id="offsetVal">0</span>
-            <span id="offsetSub" class="step-sub">every run</span>
+            <span id="offsetVal">1</span>
+            <span id="offsetSub" class="step-sub">first player</span>
+            <button id="offsetReveal" class="reveal-btn" type="button" aria-label="reveal the random offset">👁 reveal</button>
           </div>
           <button id="offsetPlus" class="step-btn" type="button" aria-label="increase offset">+</button>
         </div>

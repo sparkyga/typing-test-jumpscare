@@ -185,13 +185,13 @@ body {
 .ghost-btn:hover { color: var(--text); background: var(--sub-alt); }
 .ghost-btn.small { font-size: 0.78rem; }
 
-/* randomize stands out from the page */
-#randomBtn {
+/* randomize buttons stand out from the page */
+#randomBtn, #offsetRandom {
   background: var(--main-soft);
   color: var(--main);
   border: 1px solid var(--main);
 }
-#randomBtn:hover {
+#randomBtn:hover, #offsetRandom:hover {
   background: var(--main-soft);
   color: var(--main);
   filter: brightness(1.25);
@@ -270,6 +270,7 @@ body {
 .step-btn:hover { background: var(--main-soft); color: var(--main); }
 .step-btn:active { background: var(--main-soft); filter: brightness(1.3); }
 .step-val {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -279,6 +280,28 @@ body {
   border-left: 1px solid var(--line);
   border-right: 1px solid var(--line);
 }
+
+/* reveal overlay — only active while the offset is a hidden random value */
+.reveal-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--sub-alt);
+  color: var(--main);
+  border: none;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.13s ease;
+}
+.stepper.secret .reveal-btn { pointer-events: auto; }
+.stepper.secret:hover .reveal-btn,
+.reveal-btn:focus-visible { opacity: 1; }
 #offsetVal {
   font-family: var(--mono);
   font-size: 1.45rem;

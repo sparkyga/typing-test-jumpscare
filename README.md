@@ -64,6 +64,8 @@ Setting up a "typing competition" with a group? The **trigger offset** stepper (
 
 Crucially, everyone before the target stays inside the test loop — results → **next** → next player's test — so you **never** drop back to the setup screen mid-competition and the prank stays hidden. The round resets after the scare fires (or any time you return to setup). The Konami unlock and the coffee-button trap ignore the offset and always fire.
 
+**🎲 Random (secret) offset:** hit the **random** button by the stepper to roll a hidden target (1–5). The readout masks to `??` / `player #??` so even *you* don't know who gets it. Hover the readout and click **reveal** if you want to spoil the surprise — and hitting **+** or **−** reveals and adjusts it too.
+
 ### 🔗 Shareable game links
 
 Hit **copy game link** on the setup screen and the site bundles your current setup into a URL and copies it to your clipboard:
